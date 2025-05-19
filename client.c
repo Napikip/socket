@@ -6,43 +6,42 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define CONNECTION_PORT 8080
-
-void init_network_communication() {
-    int connection_fd;
-    struct sockaddr_in server_config;
-
-    // Configure server address
-    memset(&server_config, 0, sizeof(server_config));
-    server_config.sin_family = AF_INET;
-    server_config.sin_port = htons(CONNECTION_PORT);
-    server_config.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    // Create socket
-    if ((connection_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror("Socket initialization error");
-        exit(EXIT_FAILURE);
-    }
-
-    // Establish connection
-    if (connect(connection_fd, (struct sockaddr*)&server_config, sizeof(server_config)) == -1) {
-        perror("Server connection error");
-        close(connection_fd);
-        exit(EXIT_FAILURE);
-    }
-
-    // Prepare and send data
-    const char* student_info = "Kuznetsov Kirill Evgenievich KKSO-26-24 1st Course";
-    if (send(connection_fd, student_info, strlen(student_info), 0) == -1) {
-        perror("Data transmission error");
-    }
-
-    // Close connection
-    close(connection_fd);
-}
+#define PORT 8080  // Порт для подключения
 
 int main() {
-    init_network_communication();
+    int sock;  // Дескриптор сокета
+    struct sockaddr_in serv_addr;  // Структура адреса сервера
+    
+    // Создание сокета
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("Ошибка создания сокета");
+        exit(EXIT_FAILURE);
+    }
+
+    // Настройка адреса сервера
+    serv_addr.sin_family = AF_INET;  // Семейство адресов IPv4
+    serv_addr.sin_port = htons(PORT);  // Порт сервера
+    
+    // Преобразование IP-адреса
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        perror("Ошибка в IP-адресе");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }
+
+    // Подключение к серверу
+    if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("Ошибка подключения");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }
+
+    // Отправка данных серверу
+    char* message = "Кузнецов Кирилл Евгеньевич ККСО-26-24 1 курс";
+    send(sock, message, strlen(message), 0);
+    printf("Сообщение отправлено\n");
+
+    // Закрытие соединения
+    close(sock);
     return 0;
 }
-
