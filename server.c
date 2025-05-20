@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define PORT 8080  // Порт для прослушивания
+#define PORT 8080  // Порт для cервера
 #define BUFFER_SIZE 256  // Размер буфера
 
 int main() {
